@@ -1,6 +1,6 @@
 const Post = require("../../Blog-Backend/models/Post");
 const Expense= require("../models/Expense");
-const { post } = require("../routes/expenseRoutes");
+const getDateRange=require("../utils/getDateRange");
 
 const getExpenses=async(req,res)=>{
     try {
@@ -82,4 +82,30 @@ const deleteExpense=async(req,res)=>{
         res.status(400).json({message:error.message});
     }
 }
-module.exports={getExpenses,createExpense,getExpense,updateExpense,deleteExpense};
+const getExpenseByRange = async (req, res) => {
+  const { type, date } = req.query;
+
+  if (!type || !["day", "week", "month"].includes(type)) {
+    return res.status(400).json({ message: "Type must be 'day', 'week', or 'month'" });
+  }
+
+  const selectedDate = date ? new Date(date) : new Date();
+  const { start, end } = getDateRange(type, selectedDate);
+
+  try {
+    const expenses = await Expense.find({
+      creator: req.user.id, 
+      createdAt: { $gte: start, $lte: end }
+    });
+
+    res.status(200).json({
+      count: expenses.length,
+      from: start,
+      to: end,
+      expenses
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+module.exports={getExpenses,createExpense,getExpense,updateExpense,deleteExpense,getExpenseByRange};
