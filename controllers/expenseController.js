@@ -4,8 +4,8 @@ const { post } = require("../routes/expenseRoutes");
 
 const getExpenses=async(req,res)=>{
     try {
-        const userId=res.user;
-        const expenses=await Expense.find();
+        const creator=req.user.id;
+        const expenses=await Expense.find({creator});
         if(!expenses){
             return res.status(404).json({message:"No expenses found"});
         }
@@ -22,13 +22,16 @@ const getExpense=async(req,res)=>{
         {
             return res.status(404).json({message:"Expense not found"});
         }
+        if(expense.creator!=req.user.id){
+            return res.status(400).json({message:"Unauthorized"});
+        }
         res.status(200).json(expense);
     } catch (error) {
         res.status(400).json({message:error.message});
     }
 }
 const createExpense=async(req,res)=>{
-    const user=req.user;
+    const user=req.user.id;
     const {name,amount}=req.body;
     if(!name||!amount)
     {
@@ -51,6 +54,9 @@ const updateExpense=async(req,res)=>{
         {
             return res.status(404).json({message:"Expense not found"});
         }
+        if(expense.creator!=req.user.id){
+            return res.status(400).json({message:"Unauthorized"});
+        }
         expense.name=name;
         expense.amount=amount;
         await expense.save();
@@ -66,6 +72,9 @@ const deleteExpense=async(req,res)=>{
         if(!expense)
         {
             return res.status(404).json({message:"Expense not found"});
+        }
+        if(expense.creator!=req.user.id){
+            return res.status(400).json({message:"Unauthorized"});
         }
         await expense.deleteOne();
         res.status(200).json({message:"Expense deleted"});

@@ -6,7 +6,6 @@ const authMiddleware=async(req,res,next)=>{
         if(!authHeader||!authHeader.startsWith('Bearer ')){
             return res.status(400).json("Unauthorized");
         }
-        console.log(authHeader);
         const token=authHeader.split(' ')[1];
 
         const decoded=jwt.verify(token,"secretkey");

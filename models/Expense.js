@@ -11,7 +11,8 @@ const expenseSchema=mongoose.Schema({
     },
     creator:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:'User'
+        ref:'User',
+        required:true
     }
 },{timestamps:true});
 
